@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+
+<meta charset="utf-8">
+<title>見せ卓 : misetaku by ミラドール丁稚さん</title>
+<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<!--
+    @TODO
+        * 
+-->
+
+<style>
+.hiddenResources
+{
+    display: none;
+}
+
+body
+{
+    xheight: 101vh;
+    xoverflow-y: hidden;
+}
+
+#misetaku
+{
+    display: grid;
+    min-height: calc(100svh - 4svh);
+    grid-template-columns: 1fr;
+    grid-template-rows: min-content 1fr min-content;
+}
+    /* grid */
+    #areaWholeResult
+    {
+        grid-row: 1;
+    }
+    #areaAccumulator
+    {
+        grid-row: 2;
+    }
+    #areaKeyPad
+    {
+        grid-row: 3;
+    }
+
+#misetaku
+{
+    user-select: none;
+}
+
+#wrapperAreaWholeResult
+{
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+#overflowFlagWholeResult
+{
+    display: none;
+    position: absolute;
+    font-size: calc( 100svw / 12 );
+
+    word-wrap: none;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(180deg);
+    padding-bottom: .4em;
+
+    font-family: Courier;
+    font-weight: bold;
+    color: red;
+    --edging-color: black;
+    text-shadow:
+        4px 4px 4px var(--edging-color),
+        -4px -4px 4px var(--edging-color),
+        -4px 4px 4px var(--edging-color),
+        4px -4px 4px var(--edging-color),
+        4px 0 4px var(--edging-color),
+        -4px  0 4px var(--edging-color),
+        0 4px 4px var(--edging-color),
+        0 -4px 4px var(--edging-color)
+    ;
+}
+#areaWholeResult
+{
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    text-align: right;
+    transform: rotate(180deg);
+    text-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+#areaWholeResult::-webkit-scrollbar-track
+{
+    background-clip: content-box;
+}
+#areaWholeResult::-webkit-scrollbar
+{
+    width: 2svh;
+}
+#areaWholeResult::-webkit-scrollbar-thumb
+{
+    width: 2svh;
+    background-color: white;
+    border-color: #303030;
+    border-radius: 1svh;
+}
+#areaWholeResult::-webkit-scrollbar-track-piece:decrement
+{
+    background-color: gray;
+    border: 1px solid gray;
+}
+#areaWholeResult::-webkit-scrollbar-track-piece:increment
+{
+    background-color: gray;
+    border: 1px solid gray;
+}
+#areaWholeResult svg
+{
+    width: calc( 100svw / 9 );
+    height: auto;
+}
+#areaWholeResult .yen
+{
+    color: red;
+    /* font-size: calc( 320px * .2); */
+    /* zoom: 0.2; */
+    font-size: calc( 100svw / 12 );
+    vertical-align: .1em;
+}
+
+#areaAccumulator
+{
+    position: relative;
+    border: 1px solid gray;
+    border-radius: 1.6rem;
+    margin-bottom: 1.2rem;
+    margin-left: 8svw;
+    margin-right: 8svw;
+    background-color: #c0c0c0;
+    font-family: Courier;
+}
+#menuButton
+{
+    content: 'a';
+    position: absolute;
+    top: 0;
+    left: -8svw;
+    width: 6svw;
+}
+#menuButton svg
+{
+    width: 100%;
+    height: auto;
+}
+
+#areaAccumulator
+{
+    display: grid;
+    min-height: calc(100% - 1rem);
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr min-content;
+}
+    /* grid */
+    #areaHistory
+    {
+        grid-row: 1;
+    }
+    #wrapperAreaCurrentArguments
+    {
+        grid-row: 2;
+    }
+
+#areaHistory
+{
+    position: relative;
+    min-height: 4rem;
+}
+#areaHistoryContent
+{
+    width: calc( 100% - (.8rem + .8rem + .8rem));
+    position: absolute;
+    top: .8rem;
+    bottom: 0;
+    right: .8rem;
+    left: .8rem;
+    padding-right: .8rem;
+    overflow-y: scroll;
+    text-align: right;
+    font-size: calc( 100svw / 15 );
+    border-bottom: 1px solid rgb(30, 30, 30);
+    user-select: text;
+}
+
+#nodeCurrentArgument
+{
+    display: block;
+    font-size: calc( 100svw / 13 );
+    padding: .4rem;
+    padding-right: 2.6rem;
+    text-align: right;
+    font-weight: bold;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+#areaCurrentArguments
+{
+    margin-bottom: .4rem;
+}
+#areaCurrentArguments
+{
+    display: grid;
+    grid-template-columns: min-content 1fr;
+    grid-template-rows: 1fr;
+}
+    /* grid */
+    #nodeOperator
+    {
+        grid-column: 1;
+    }
+    #nodeCurrentArgument
+    {
+        grid-column: 2;
+    }
+
+#nodeOperator
+{
+    font-size: calc( 100svw / 15 );
+    display: block;
+    height: 1.6em;
+    margin: .26em .4em;
+    color: white;
+    font-weight: bold;
+    background: rgb(30, 30, 30);
+    padding: 0em .26em;
+    border-radius: .2em;
+    visibility: hidden; /* default */
+}
+
+#areaKeyPad
+{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    grid-row-gap: .8rem;
+    grid-column-gap: .8rem;
+}
+    #pad-7
+    {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    #pad-8
+    {
+        grid-column: 2;
+        grid-row: 1;
+    }
+    #pad-9
+    {
+        grid-column: 3;
+        grid-row: 1;
+    }
+    #pad-4
+    {
+        grid-column: 1;
+        grid-row: 2;
+    }
+    #pad-5
+    {
+        grid-column: 2;
+        grid-row: 2;
+    }
+    #pad-6
+    {
+        grid-column: 3;
+        grid-row: 2;
+    }
+    #pad-1
+    {
+        grid-column: 1;
+        grid-row: 3;
+    }
+    #pad-2
+    {
+        grid-column: 2;
+        grid-row: 3;
+    }
+    #pad-3
+    {
+        grid-column: 3;
+        grid-row: 3;
+    }
+    #pad-0
+    {
+        grid-column: 1;
+        grid-row: 4;
+    }
+    #pad-minus
+    {
+        grid-column: 2;
+        grid-row: 4;
+    }
+    #pad-plus
+    {
+        grid-column: 3;
+        grid-row: 4;
+    }
+    #pad-allClear
+    {
+        grid-column: 4;
+        grid-row: 1;
+    }
+    #pad-clear
+    {
+        grid-column: 4;
+        grid-row: 2;
+    }
+    #pad-change
+    {
+        grid-column: 4;
+        grid-row: 3;
+    }
+    #pad-equal
+    {
+        grid-column: 4;
+        grid-row: 4;
+    }
+
+#pad-allClear
+{
+    color: red;
+}
+.keys
+{
+    font-size: calc( 100svw / 4 / 4 );
+    font-weight: bold;
+    border: 1px solid gray;
+    text-align: center;
+    text-decoration: none;
+    border-radius: .3em;
+    margin: 0;
+    padding: 0;
+    padding-top: .5em;
+    padding-bottom: .5em;
+    user-select: none;
+    background: rgb(250, 250, 250);
+    --grad-from: rgb(210, 210, 210);
+    --grad-to: rgb(255, 255, 255);
+    background: -moz-linear-gradient(
+        top, var(--grad-from), var(--grad-to)
+    );
+    background: -webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        from(var(--grad-from)), to(var(--grad-to))
+    );
+    color: rgb(50, 50, 50);
+    text-shadow: 0 0 2px rgb(255, 255, 255);
+    --keys-box-shadow:
+        inset 0 0 1px rgb(255, 255, 255),
+        inset 0 0 .4em rgb(200, 200, 200),
+        0 .1em 0 rgb(130, 130, 130),
+        0 .11em 0 rgba(0, 0, 0, .4),
+        0 .1em .11em rgba(0, 0, 0, .9)
+    ;
+    box-shadow: var( --keys-box-shadow );
+    -moz-box-shadow: var( --keys-box-shadow );
+    -webkit-box-shadow: var( --keys-box-shadow );
+}
+
+#modalHelp
+{
+    border: 1px solid gray;
+    border-radius: 1em;
+    width: 84svw;
+    height: 60svh;
+    overflow-y: hidden;
+    padding: 1em;
+}
+#modalHelp,
+#modalHelp header button
+{
+    font-size: calc( 100svw / 25 );
+}
+#modalHelp header button
+{
+    display: block;
+    margin-left: auto;
+}
+#modalHelpBody
+{
+    overflow-y: auto;
+}
+
+</style>
+
+</head>
+<body>
+
+<form
+    name="misetaku"
+    id="misetaku"
+>
+    <div
+        id="wrapperAreaWholeResult"
+    >
+        <div
+            id="areaWholeResult"
+        ></div>
+        <div
+            id="overflowFlagWholeResult"
+        >
+            桁あふれ
+        </div>
+    </div>
+
+    <div
+        id="areaAccumulator"
+    >
+        <button
+            id="menuButton"
+            type="button"
+            popovertargetaction="show"
+            popovertarget="modalHelp"
+        ></button>
+        <div
+            id="areaHistory"
+        >
+            <div
+                id="areaHistoryContent"
+            >
+                <div
+                    id="areaHistoryBottom"
+                ></div>
+            </div>
+        </div>
+        <div
+            id="wrapperAreaCurrentArguments"
+        >
+            <div
+                id="areaCurrentArguments"
+            >
+                <div
+                    id="nodeOperator"
+                ></div>
+                <output
+                    id="nodeCurrentArgument"
+                ></output>
+            </div>
+        </div>
+    </div>
+
+    <div
+        id="areaKeyPad"
+    ></div>
+</form>
+
+<div
+    popover="auto"
+    id="modalHelp"
+>
+    <header>
+        <button
+            popovertargetaction="hidden"
+            popovertarget="modalHelp"
+            type="button"
+        >
+            ×
+        </button>
+    </header>
+    <div
+        id="modalHelpBody"
+    >
+        バージョン：{{VERSION}}
+    </div>
+</div>
+
+<div
+    class="hiddenResources"
+>
+    <div
+        id="svgDigits"
+    >
+        <svg
+            id="digit-0"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#FF0000"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#FF0000"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#FF0000"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#FF0000"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#FF0000"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#DDDDDD"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-1"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#DDDDDD"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#FF0000"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#DDDDDD"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#DDDDDD"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#DDDDDD"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#DDDDDD"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-2"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#FF0000"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#FF0000"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#DDDDDD"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#FF0000"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#FF0000"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#DDDDDD"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#FF0000"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-3"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#FF0000"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#FF0000"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#FF0000"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#DDDDDD"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#DDDDDD"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#FF0000"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-4"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#DDDDDD"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#FF0000"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#DDDDDD"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#DDDDDD"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#FF0000"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#FF0000"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-5"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#FF0000"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#DDDDDD"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#FF0000"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#DDDDDD"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#FF0000"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#FF0000"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-6"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#FF0000"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#DDDDDD"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#FF0000"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#FF0000"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#FF0000"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#FF0000"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-7"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#FF0000"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#FF0000"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#DDDDDD"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#DDDDDD"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#DDDDDD"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#DDDDDD"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-8"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points="1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#FF0000"/>
+                <polygon id="b" points="9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#FF0000"/>
+                <polygon id="c" points="9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points="9,17  8,18  2,18  1,17  2,16  8,16" fill="#FF0000"/>
+                <polygon id="e" points="1,17  0,16  0,10  1, 9  2,10  2,16" fill="#FF0000"/>
+                <polygon id="f" points="1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#FF0000"/>
+                <polygon id="g" points="1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#FF0000"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-9"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#FF0000"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#FF0000"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#FF0000"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#FF0000"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#DDDDDD"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#FF0000"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#FF0000"/>
+            </g>
+        </svg>
+        <svg
+            id="digit--"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#DDDDDD"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#DDDDDD"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#DDDDDD"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#DDDDDD"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#DDDDDD"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#DDDDDD"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#FF0000"/>
+            </g>
+        </svg>
+        <svg
+            id="digit-_"
+            xmlns="http://www.w3.org/2000/svg" width="192px" height="320px" viewBox="-1 -1 12 20"
+        >
+            <g style="fill-rule:evenodd; stroke:#FFFFFF; stroke-width:0.25; stroke-opacity:1; stroke-linecap:butt; stroke-linejoin:miter;">
+                <polygon id="a" points=" 1, 1  2, 0  8, 0  9, 1  8, 2  2, 2" fill="#DDDDDD"/>
+                <polygon id="b" points=" 9, 1 10, 2 10, 8  9, 9  8, 8  8, 2" fill="#DDDDDD"/>
+                <polygon id="c" points=" 9, 9 10,10 10,16  9,17  8,16  8,10" fill="#DDDDDD"/>
+                <polygon id="d" points=" 9,17  8,18  2,18  1,17  2,16  8,16" fill="#FF0000"/>
+                <polygon id="e" points=" 1,17  0,16  0,10  1, 9  2,10  2,16" fill="#DDDDDD"/>
+                <polygon id="f" points=" 1, 9  0, 8  0, 2  1, 1  2, 2  2, 8" fill="#DDDDDD"/>
+                <polygon id="g" points=" 1, 9  2, 8  8, 8  9, 9  8,10  2,10" fill="#DDDDDD"/>
+            </g>
+        </svg>
+    </div>
+
+    <svg
+        id="icon-hamburger"
+        xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"
+    >
+        <defs>
+            <style>
+                .cls-1,
+                .cls-2
+                {
+                    fill: none;
+                }
+                .cls-2
+                {
+                    stroke: #000;
+                    stroke-linecap: round;
+                    stroke-linejoin: round;
+                    stroke-width: 4px;
+                }
+            </style>
+        </defs>
+        <g>
+            <g>
+                <rect class="cls-1" width="48" height="48"/>
+            </g>
+            <g>
+                <line class="cls-2" x1="10" y1="12" x2="38" y2="12"/>
+                <line class="cls-2" x1="10" y1="24" x2="38" y2="24"/>
+                <line class="cls-2" x1="10" y1="36" x2="38" y2="36"/>
+            </g>
+        </g>
+    </svg>
+
+</div>
+
+<script>
+const VERSION = '0.8.1';
+
+const KEYS = [
+    '7', '8', '9',
+    '4', '5', '6',
+    '1', '2', '3',
+    '0', '-', '+',
+    'AC',
+    'C',
+    'X',
+    '=',
+];
+const SAFE_KEY_NAMES = {
+    'AC' : 'allClear',
+    '+' : 'plus',
+    '-' : 'minus',
+    '=' : 'equal',
+    'C' : 'clear',
+    'X' : 'change',
+};
+const OPERATORS = [ '+', '-', 'X' ];
+const DISPLAY_REPLACEMENTS = {
+    '+' : '＋',
+    '-' : '━',
+    '=' : '＝',
+    'X' : '預',
+};
+const DISPLAY_REPLACEMENTS_IN_HISTORY = {
+    'X' : '預',
+};
+
+let NODE_AREA_WHOLE_RESULT = $$('areaWholeResult');
+let NODE_AREA_HISTORY = $$('areaHistory');
+let NODE_AREA_HISTORY_CONTENT = $$('areaHistoryContent');
+let NODE_AREA_HISTORY_BOTTOM = $$('areaHistoryBottom');
+let NODE_AREA_KEYPAD = $$('areaKeyPad');
+let NODE_CURRENT_ARGUMENT = $$('nodeCurrentArgument');
+let NODE_OPERATOR = $$('nodeOperator');
+let NODE_OVERFLOW_FLAG_WHOLE_RESULT = $$('overflowFlagWholeResult');
+
+let currentOperator = '';
+let lastArgument = 0;
+
+function $$(str) {
+    return document.getElementById( str );
+}
+
+function stringToNode(str) {
+    return document.createRange().createContextualFragment(str);
+}
+
+function isOperator( s ) {
+    if( OPERATORS.includes(s) ) return true;
+    return false;
+}
+function showOperator() {
+    let op = currentOperator;
+    if ( ! isOperator(op) ) return false;
+    let str = DISPLAY_REPLACEMENTS[op].substr( 0,1 );
+    let nodeStr = stringToNode( str );
+    NODE_OPERATOR.innerHTML = '';
+    NODE_OPERATOR.appendChild( nodeStr );
+    NODE_OPERATOR.style.visibility = 'visible';
+}
+function clearOperator() {
+    currentOperator = '';
+    NODE_OPERATOR.innerHTML = '';
+    NODE_OPERATOR.style.visibility = 'hidden';
+}
+
+function hasScrollBarX( elem ) {
+    let scrollBarXHeight = elem.offsetHeight - elem.clientHeight;
+    if ( scrollBarXHeight == 0 ) {
+        return false;
+    }
+    return true;
+}
+
+function showWholeResult( argVal ) {
+    let val = argVal || getCurrentArgument();
+    let strVal = String( val );
+    strVal = strVal.replace( /[^0-9-]{1,}/g, '_' );
+    let strVals = [...strVal];
+    NODE_AREA_WHOLE_RESULT.innerHTML = `
+        <span class="yen">￥</span>
+    `;
+    strVals.forEach( v => {
+        let templateNode = $$(`digit-${v}`);
+        if ( templateNode === null ) {
+            templateNode = $$(`digit-_`);
+        }
+        let digitNode = templateNode.cloneNode(true);
+        digitNode.removeAttribute('id');
+        NODE_AREA_WHOLE_RESULT.appendChild( digitNode );
+    });
+    NODE_OVERFLOW_FLAG_WHOLE_RESULT.style.display = 'none';
+    if ( hasScrollBarX( NODE_AREA_WHOLE_RESULT ) ) {
+        NODE_OVERFLOW_FLAG_WHOLE_RESULT.style.display = 'block';
+    }
+}
+
+function getCurrentArgument() {
+    let val = NODE_CURRENT_ARGUMENT.innerText;
+    return Math.trunc(val);
+}
+function setCurrentArgument( val ) {
+    let typedVal = Math.trunc( val );
+    let col = String(val).toString().length;
+    if ( col >= 15 ) {
+        return;
+    }
+    NODE_CURRENT_ARGUMENT.innerHTML = typedVal;
+}
+function clearCurrentArgument() {
+    setCurrentArgument( 0 );
+}
+
+function getLocalNumber( n ) {
+    let str = String(n).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,' );
+    return str;
+}
+
+function addNodeToAreaHistory( op, arg = null ) {
+    if ( arg === null ) {
+        arg = getCurrentArgument();
+    }
+    let displayment = op;
+    if ( DISPLAY_REPLACEMENTS_IN_HISTORY[op] ) {
+        displayment = `[${DISPLAY_REPLACEMENTS_IN_HISTORY[op]}]`;
+    }
+    let n = stringToNode(
+        `<div>${displayment} ${getLocalNumber(arg)}</div>`
+    );
+    NODE_AREA_HISTORY_CONTENT.insertBefore(
+        n,
+        NODE_AREA_HISTORY_BOTTOM
+    );
+    NODE_AREA_HISTORY_BOTTOM.scrollIntoView( false );
+}
+function clearAreaHistory() {
+    NODE_AREA_HISTORY.insertBefore(
+        NODE_AREA_HISTORY_BOTTOM,
+        NODE_AREA_HISTORY_CONTENT
+    );
+    NODE_AREA_HISTORY_CONTENT.innerHTML = '';
+    NODE_AREA_HISTORY_CONTENT.appendChild( NODE_AREA_HISTORY_BOTTOM );
+}
+
+function clearCurrentInputStatusAll() {
+    clearCurrentArgument();
+    clearOperator();
+}
+
+function onClickNodePad(e) {
+    let val = e.target.getAttribute('data-value');
+    if ( val === null ) {
+        return;
+    }
+    if( ! val.match(/^[0-9]$/) ) {
+        let currentArgument = getCurrentArgument();
+        let _doAccumulate = ( thisOp ) => {
+            if ( isOperator(currentOperator) ) {
+                addNodeToAreaHistory( currentOperator, currentArgument );
+                switch( currentOperator ) {
+                    case '+' :
+                        currentArgument = lastArgument + currentArgument;
+                        break;
+                    case '-' :
+                        currentArgument = lastArgument - currentArgument;
+                        break;
+                    case 'X' :
+                        currentArgument = currentArgument - lastArgument;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            lastArgument = currentArgument;
+            showWholeResult(currentArgument);
+            addNodeToAreaHistory( thisOp, currentArgument );
+        };
+        switch( val ) {
+            case 'C' :
+                clearCurrentInputStatusAll();
+                break;
+            case 'AC' :
+                clearCurrentInputStatusAll();
+                showWholeResult();
+                clearAreaHistory();
+                lastArgument = 0;
+                break;
+            case '=' :
+                _doAccumulate( '=' );
+                clearCurrentInputStatusAll();
+                break;
+            case '+' :
+            case '-' :
+            case 'X' :
+                if ( isOperator(currentOperator) && currentArgument > 0 ) {
+                    _doAccumulate( '=' );
+                } else if ( currentArgument > 0 ) {
+                    lastArgument = currentArgument;
+                    showWholeResult();
+                    addNodeToAreaHistory( '', currentArgument );
+                }
+                clearCurrentInputStatusAll();
+                currentOperator = val;
+                showOperator();
+                break;
+            default:
+                break;
+        }
+        return;
+    }
+    setCurrentArgument( `${getCurrentArgument()}${val}` );
+}
+
+function pageStaging() {
+    let nodeMenuButton = $$('menuButton');
+    nodeMenuButton.appendChild( $$('icon-hamburger') );
+    let nodeModalHelpBody = $$('modalHelpBody');
+    nodeModalHelpBody.innerHTML =
+        nodeModalHelpBody.innerHTML.replace(/{{VERSION}}/g, VERSION);
+    ;
+    for( let key of KEYS ) {
+        let safeKeyName = SAFE_KEY_NAMES[key];
+        if ( ! safeKeyName ) {
+            safeKeyName = key;
+        }
+        let displayReplacement = DISPLAY_REPLACEMENTS[key];
+        if ( ! displayReplacement ) {
+            displayReplacement = key;
+        }
+        let baseHTML = `
+            <button
+                type="button"
+                class="keys"
+                id="pad-${safeKeyName}"
+                data-value="${key}"
+            >
+                ${displayReplacement}
+            </button>
+        `;
+        let aNode = stringToNode(baseHTML);
+        NODE_AREA_KEYPAD.append( aNode );
+    }
+    NODE_AREA_KEYPAD.addEventListener(
+        'click',
+        onClickNodePad,
+        false
+    );
+    clearCurrentArgument();
+    showWholeResult();
+}
+
+window.addEventListener(
+    'load',
+    pageStaging
+);
+
+</script>
+
+</body>
+</html>
