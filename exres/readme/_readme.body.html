@@ -1,0 +1,94 @@
+  <div class="md2html-container">
+<h1 id="見せ卓">見せ卓</h1>
+<p>「見せ卓 : misetaku by ミラドール丁稚さん」についてのヘルプです。</p>
+<p>「見せ卓」は、同人イベントなどで「購入額をお客さんにわかりやすく表示する」ためにつくった、かんたんな電卓です。</p>
+<p>特徴は以下のとおりです：</p>
+<ul>
+<li>計算結果が上下逆（お客さん向け）に表示される</li>
+<li>預り金からお釣りを計算する機能がある</li>
+<li>電卓機能は簡単な＋／－のみ</li>
+<li>単一のHTMLファイルのみで動作する</li>
+<li>おまけとして、計算履歴を画面上に遺していく機能がある</li>
+</ul>
+<p>タブレットやスマホのブラウザで利用することを想定しています。</p>
+<hr />
+<p>目次：</p>
+<!-- TOC -->
+<ul>
+<li><a href="#見せ卓">見せ卓</a>
+<ul>
+<li><a href="#使い始めるには">使い始めるには</a></li>
+<li><a href="#使い方">使い方</a></li>
+<li><a href="#動作環境・検証環境について">動作環境・検証環境について</a></li>
+<li><a href="#改版履歴">改版履歴</a></li>
+</ul></li>
+</ul>
+<!-- /TOC -->
+<hr />
+<h2 id="使い始めるには">使い始めるには</h2>
+<p>使い始め方には、大きく分けて2種類あります。</p>
+<ol type="1">
+<li>ブラウザで直接アクセスする<br />
+URL は <code>https://miladoll.github.io/misetaku/</code> です。 <a href="https://miladoll.github.io/misetaku/">リンクはこちら</a></li>
+<li>HTMLをダウンロードしてきて直接開く<br />
+<a href="https://github.com/miladoll/misetaku/blob/master/index.html">Githubのリポジトリ</a> から 「Download」または「Download raw file」 という項目を探してクリック、HTMLファイル <code>index.html</code> を適当な場所に保存してください。<br />
+使うときは保存したファイルを直接ブラウザで開きます</li>
+</ol>
+<p>「ブラウザで直接アクセス」して、ブラウザの「ホーム画面に追加」をすると、</p>
+<ul>
+<li>端末のホーム画面にアプリのようなショートカットアイコンができて呼び出せるようになります</li>
+<li>アドレスバーなどが非表示になります。</li>
+</ul>
+<p>「HTMLをダウンロードしてきて直接開く」場合、必要なのは <code>index.html</code> ファイルのみです。当然、このファイルを適当な Webサーバに設置してアクセスすれば、そのまま動作します。</p>
+<h2 id="使い方">使い方</h2>
+<p>基本的に簡易電卓そのままです。</p>
+<p>以下はボタン操作の例です：</p>
+<ul>
+<li><code>1600</code> <code>=</code><br />
+→ <code>1600</code> と表示</li>
+<li><code>1600</code> <code>+</code> <code>1000</code> <code>=</code><br />
+→ <code>2600</code> と表示</li>
+<li><code>1600</code> <code>+</code> <code>1000</code> <code>+</code> <code>1000</code> <code>=</code><br />
+→ <code>3600</code> と表示</li>
+<li><code>1600</code> <code>+</code> <code>1000</code> <code>+</code> <code>1000</code> <code>預</code> <code>4000</code> <code>=</code><br />
+→ <code>400</code> と表示</li>
+<li><code>1600</code> <code>=</code> <code>+</code> <code>2000</code> <code>=</code><br />
+→ <code>3600</code> と表示</li>
+<li><code>1600</code> <code>=</code> <code>預</code> <code>2000</code> <code>=</code><br />
+→ <code>400</code> と表示</li>
+</ul>
+<h2 id="動作環境検証環境について">動作環境・検証環境について</h2>
+<p>主な動作環境は以下のとおりです。これ以外では動作が保証できません：</p>
+<ul>
+<li>比較的新しい Android／iOS系 タブレットおよびスマートフォン</li>
+<li>ブラウザは、かなり新しい Chrome／Safari</li>
+</ul>
+<p>検証環境は以下のとおりで、この環境では動作が保証されています：</p>
+<ul>
+<li>Android 13以降</li>
+<li>Chrome 114以降</li>
+</ul>
+<p>動作に必要としているWeb関連機能で互換性を左右しやすい事項は以下のとおりです：</p>
+<ul>
+<li>CSS grid</li>
+<li>CSS svh()</li>
+<li>HTML Popover API</li>
+<li><code>&amp;</code> を使わない CSS ネスト</li>
+</ul>
+<h2 id="改版履歴">改版履歴</h2>
+<ul>
+<li>0.8.2
+<ul>
+<li>フリップボタン（計算結果の表示方向を180度変える）を追加</li>
+</ul></li>
+<li>0.8.2
+<ul>
+<li>ヘルプをつけた</li>
+<li>Make環境の追加</li>
+</ul></li>
+<li>0.8.1
+<ul>
+<li>初期版</li>
+</ul></li>
+</ul>
+  </div>
