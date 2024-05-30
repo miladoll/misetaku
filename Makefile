@@ -10,6 +10,10 @@ OUTPUT_README_HTML=exres/readme/_readme.html
 OUTPUT_README_HTML_BODY=exres/readme/_readme.body.html
 OUTPUT_README_HTML_CSS=exres/readme/_readme.css
 
+
+.phony: default
+default: help
+
 .phony: help
 help: ## ヘルプを表示する
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \

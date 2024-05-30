@@ -905,7 +905,6 @@ const SAFE_KEY_NAMES = {
     'C' : 'clear',
     'X' : 'change',
 };
-const OPERATORS = [ '+', '-', 'X' ];
 const DISPLAY_REPLACEMENTS = {
     '+' : '＋',
     '-' : '━',
@@ -916,126 +915,203 @@ const DISPLAY_REPLACEMENTS_IN_HISTORY = {
     'X' : '預',
 };
 
-let NODE_AREA_WHOLE_RESULT = $$('areaWholeResult');
-let NODE_AREA_HISTORY = $$('areaHistory');
-let NODE_AREA_HISTORY_CONTENT = $$('areaHistoryContent');
-let NODE_AREA_HISTORY_BOTTOM = $$('areaHistoryBottom');
-let NODE_AREA_KEYPAD = $$('areaKeyPad');
-let NODE_CURRENT_ARGUMENT = $$('nodeCurrentArgument');
-let NODE_OPERATOR = $$('nodeOperator');
-let NODE_OVERFLOW_FLAG_WHOLE_RESULT = $$('overflowFlagWholeResult');
-
-let currentOperator = '';
-let lastArgument = 0;
-
 function $$(str) {
     return document.getElementById( str );
 }
 
-function stringToNode(str) {
-    return document.createRange().createContextualFragment(str);
+class UtilMisetaku {
+    static hasScrollBarX( elem ) {
+        let scrollBarXHeight = elem.offsetHeight - elem.clientHeight;
+        if ( scrollBarXHeight == 0 ) {
+            return false;
+        }
+        return true;
+    }
+    static stringToNode(str) {
+        return document.createRange().createContextualFragment(str);
+    }
+    static getLocalNumber( n ) {
+        let str = String(n).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,' );
+        return str;
+    }
 }
 
-function isOperator( s ) {
-    if( OPERATORS.includes(s) ) return true;
-    return false;
-}
-function showOperator() {
-    let op = currentOperator;
-    if ( ! isOperator(op) ) return false;
-    let str = DISPLAY_REPLACEMENTS[op].substr( 0,1 );
-    let nodeStr = stringToNode( str );
-    NODE_OPERATOR.innerHTML = '';
-    NODE_OPERATOR.appendChild( nodeStr );
-    NODE_OPERATOR.style.visibility = 'visible';
-}
-function clearOperator() {
-    currentOperator = '';
-    NODE_OPERATOR.innerHTML = '';
-    NODE_OPERATOR.style.visibility = 'hidden';
-}
+const nodes = new class {
+    AREA_WHOLE_RESULT = $$('areaWholeResult');
+    AREA_HISTORY = $$('areaHistory');
+    AREA_HISTORY_CONTENT = $$('areaHistoryContent');
+    AREA_HISTORY_BOTTOM = $$('areaHistoryBottom');
+    AREA_KEYPAD = $$('areaKeyPad');
+    CURRENT_ARGUMENT = $$('nodeCurrentArgument');
+    OPERATOR = $$('nodeOperator');
+    OVERFLOW_FLAG_WHOLE_RESULT = $$('overflowFlagWholeResult');
+}();
 
-function hasScrollBarX( elem ) {
-    let scrollBarXHeight = elem.offsetHeight - elem.clientHeight;
-    if ( scrollBarXHeight == 0 ) {
+const proxyOverflowFlagWholeResult = new class {
+    #style = 0;
+    #node;
+    constructor( nd ) {
+        this.#node = nd;
+    }
+    isOverflowed() {
+        return UtilMisetaku.hasScrollBarX( nodes.AREA_WHOLE_RESULT );
+    }
+    setStyle( s ) {
+        this.#style = s;
+        nodes.OVERFLOW_FLAG_WHOLE_RESULT.style.display = s;
+    }
+    refresh() {
+        this.setStyle('none');
+        if ( this.isOverflowed() ) {
+            this.setStyle('block');
+        }
+    }
+}();
+
+const proxyWholeResult = new class {
+    #value = 0;
+    #node;
+    constructor( nd ) {
+        this.#node = nd;
+    }
+    get() {
+        return this.#value;
+    }
+    set( argVal ) {
+        this.showWholeResult( argVal );
+    }
+    showWholeResult( argVal ) {
+        let val = argVal || proxyCurrentArgument.get();
+        let strVal = String( val );
+        strVal = strVal.replace( /[^0-9-]{1,}/g, '_' );
+        let strVals = [...strVal];
+        nodes.AREA_WHOLE_RESULT.innerHTML = `
+            <span class="yen">￥</span>
+        `;
+        strVals.forEach( v => {
+            let templateNode = $$(`digit-${v}`);
+            if ( templateNode === null ) {
+                templateNode = $$(`digit-_`);
+            }
+            let digitNode = templateNode.cloneNode(true);
+            digitNode.removeAttribute('id');
+            nodes.AREA_WHOLE_RESULT.appendChild( digitNode );
+        });
+        proxyOverflowFlagWholeResult.refresh();
+    }
+}();
+
+const proxyOperator = new class {
+    #currentOperator = '';
+    #node;
+    OPERATORS = [ '+', '-', 'X' ];
+    constructor( nd ) {
+        this.#node = nd;
+    }
+    get() {
+        return this.#currentOperator;
+    }
+    set( argVal ) {
+        this.#currentOperator = argVal;
+    }
+    isOperator( s ) {
+        if ( this.OPERATORS.includes(s) ) return true;
         return false;
     }
-    return true;
-}
+    showOperator() {
+        let op = this.get();
+        if ( ! proxyOperator.isOperator(op) ) return false;
+        let str = DISPLAY_REPLACEMENTS[op].substr( 0,1 );
+        let nodeStr = UtilMisetaku.stringToNode( str );
+        nodes.OPERATOR.innerHTML = '';
+        nodes.OPERATOR.appendChild( nodeStr );
+        nodes.OPERATOR.style.visibility = 'visible';
+    }
+    clearOperator() {
+        this.set('');
+        nodes.OPERATOR.innerHTML = '';
+        nodes.OPERATOR.style.visibility = 'hidden';
+    }
+}();
 
-function showWholeResult( argVal ) {
-    let val = argVal || getCurrentArgument();
-    let strVal = String( val );
-    strVal = strVal.replace( /[^0-9-]{1,}/g, '_' );
-    let strVals = [...strVal];
-    NODE_AREA_WHOLE_RESULT.innerHTML = `
-        <span class="yen">￥</span>
-    `;
-    strVals.forEach( v => {
-        let templateNode = $$(`digit-${v}`);
-        if ( templateNode === null ) {
-            templateNode = $$(`digit-_`);
+const proxyCurrentArgument = new class {
+    #currentArgument = '';
+    #node;
+    constructor( nd ) {
+        this.#node = nd;
+    }
+    get() {
+        let val = this.#currentArgument;
+        return Math.trunc(val);
+    }
+    set( argVal ) {
+        let typedVal = Math.trunc( argVal );
+        this.#currentArgument = typedVal;
+        let col = String(typedVal).toString().length;
+        if ( col >= 15 ) {
+            return;
         }
-        let digitNode = templateNode.cloneNode(true);
-        digitNode.removeAttribute('id');
-        NODE_AREA_WHOLE_RESULT.appendChild( digitNode );
-    });
-    NODE_OVERFLOW_FLAG_WHOLE_RESULT.style.display = 'none';
-    if ( hasScrollBarX( NODE_AREA_WHOLE_RESULT ) ) {
-        NODE_OVERFLOW_FLAG_WHOLE_RESULT.style.display = 'block';
+        nodes.CURRENT_ARGUMENT.innerHTML = typedVal;
     }
-}
+    clear() {
+        this.set( 0 );
+    }
+}();
 
-function getCurrentArgument() {
-    let val = NODE_CURRENT_ARGUMENT.innerText;
-    return Math.trunc(val);
-}
-function setCurrentArgument( val ) {
-    let typedVal = Math.trunc( val );
-    let col = String(val).toString().length;
-    if ( col >= 15 ) {
-        return;
+const proxyLastArgument = new class {
+    #lastArgument = '';
+    #node;
+    constructor( nd ) {
+        this.#node = nd;
     }
-    NODE_CURRENT_ARGUMENT.innerHTML = typedVal;
-}
-function clearCurrentArgument() {
-    setCurrentArgument( 0 );
-}
+    get() {
+        let val = this.#lastArgument;
+        return val;
+    }
+    set( argVal ) {
+        this.#lastArgument = argVal;
+    }
+}();
 
-function getLocalNumber( n ) {
-    let str = String(n).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,' );
-    return str;
-}
-
-function addNodeToAreaHistory( op, arg = null ) {
-    if ( arg === null ) {
-        arg = getCurrentArgument();
+const proxyAreaHistory = new class {
+    #node;
+    constructor( nd ) {
+        this.#node = nd;
     }
-    let displayment = op;
-    if ( DISPLAY_REPLACEMENTS_IN_HISTORY[op] ) {
-        displayment = `[${DISPLAY_REPLACEMENTS_IN_HISTORY[op]}]`;
+    get() {
     }
-    let n = stringToNode(
-        `<div>${displayment} ${getLocalNumber(arg)}</div>`
-    );
-    NODE_AREA_HISTORY_CONTENT.insertBefore(
-        n,
-        NODE_AREA_HISTORY_BOTTOM
-    );
-    NODE_AREA_HISTORY_BOTTOM.scrollIntoView( false );
-}
-function clearAreaHistory() {
-    NODE_AREA_HISTORY.insertBefore(
-        NODE_AREA_HISTORY_BOTTOM,
-        NODE_AREA_HISTORY_CONTENT
-    );
-    NODE_AREA_HISTORY_CONTENT.innerHTML = '';
-    NODE_AREA_HISTORY_CONTENT.appendChild( NODE_AREA_HISTORY_BOTTOM );
-}
+    set() {
+    }
+    add( op, arg = null ) {
+        if ( arg === null ) {
+            arg = proxyCurrentArgument.get();
+        }
+        let displayment = op;
+        if ( DISPLAY_REPLACEMENTS_IN_HISTORY[op] ) {
+            displayment = `[${DISPLAY_REPLACEMENTS_IN_HISTORY[op]}]`;
+        }
+        let n = UtilMisetaku.stringToNode(
+            `<div>${displayment} ${UtilMisetaku.getLocalNumber(arg)}</div>`
+        );
+        nodes.AREA_HISTORY_CONTENT.insertBefore(
+            n,
+            nodes.AREA_HISTORY_BOTTOM
+        );
+        nodes.AREA_HISTORY_BOTTOM.scrollIntoView( false );
+    }
+    clear() {
+        nodes.AREA_HISTORY.insertBefore(
+            nodes.AREA_HISTORY_BOTTOM,
+            nodes.AREA_HISTORY_CONTENT
+        );
+        nodes.AREA_HISTORY_CONTENT.innerHTML = '';
+        nodes.AREA_HISTORY_CONTENT.appendChild( nodes.AREA_HISTORY_BOTTOM );
+    }
+}();
 
 function clearCurrentInputStatusAll() {
-    clearCurrentArgument();
-    clearOperator();
+    proxyCurrentArgument.clear();
+    proxyOperator.clearOperator();
 }
 
 function onClickNodePad(e) {
@@ -1044,11 +1120,13 @@ function onClickNodePad(e) {
         return;
     }
     if( ! val.match(/^[0-9]$/) ) {
-        let currentArgument = getCurrentArgument();
+        let currentArgument = proxyCurrentArgument.get();
+        let lastArgument = proxyLastArgument.get();
         let _doAccumulate = ( thisOp ) => {
-            if ( isOperator(currentOperator) ) {
-                addNodeToAreaHistory( currentOperator, currentArgument );
-                switch( currentOperator ) {
+            let op = proxyOperator.get();
+            if ( proxyOperator.isOperator(op) ) {
+                proxyAreaHistory.add( op, currentArgument );
+                switch( op ) {
                     case '+' :
                         currentArgument = lastArgument + currentArgument;
                         break;
@@ -1062,9 +1140,9 @@ function onClickNodePad(e) {
                         break;
                 }
             }
-            lastArgument = currentArgument;
-            showWholeResult(currentArgument);
-            addNodeToAreaHistory( thisOp, currentArgument );
+            proxyLastArgument.set(currentArgument);
+            proxyWholeResult.set(currentArgument);
+            proxyAreaHistory.add( thisOp, currentArgument );
         };
         switch( val ) {
             case 'C' :
@@ -1072,9 +1150,9 @@ function onClickNodePad(e) {
                 break;
             case 'AC' :
                 clearCurrentInputStatusAll();
-                showWholeResult();
-                clearAreaHistory();
-                lastArgument = 0;
+                proxyWholeResult.set();
+                proxyAreaHistory.clear();
+                proxyLastArgument.set( 0 );
                 break;
             case '=' :
                 _doAccumulate( '=' );
@@ -1083,23 +1161,26 @@ function onClickNodePad(e) {
             case '+' :
             case '-' :
             case 'X' :
-                if ( isOperator(currentOperator) && currentArgument > 0 ) {
+                if (
+                    proxyOperator.isOperator(proxyOperator.get())
+                    && currentArgument > 0
+                ) {
                     _doAccumulate( '=' );
                 } else if ( currentArgument > 0 ) {
-                    lastArgument = currentArgument;
-                    showWholeResult();
-                    addNodeToAreaHistory( '', currentArgument );
+                    proxyLastArgument.set( currentArgument );
+                    proxyWholeResult.set();
+                    proxyAreaHistory.add( '', currentArgument );
                 }
                 clearCurrentInputStatusAll();
-                currentOperator = val;
-                showOperator();
+                proxyOperator.set(val);
+                proxyOperator.showOperator();
                 break;
             default:
                 break;
         }
         return;
     }
-    setCurrentArgument( `${getCurrentArgument()}${val}` );
+    proxyCurrentArgument.set( `${proxyCurrentArgument.get()}${val}` );
 }
 
 function pageStaging() {
@@ -1108,8 +1189,8 @@ function pageStaging() {
     nodeButtonFlip.addEventListener(
         'click',
         () => {
-            let currentStyle = NODE_AREA_WHOLE_RESULT.className;
-            NODE_AREA_WHOLE_RESULT.className =
+            let currentStyle = nodes.AREA_WHOLE_RESULT.className;
+            nodes.AREA_WHOLE_RESULT.className =
                 ( currentStyle == 'rotate180Deg' )
                 ? 'rotate0Deg'
                 : 'rotate180Deg'
@@ -1142,16 +1223,16 @@ function pageStaging() {
                 ${displayReplacement}
             </button>
         `;
-        let aNode = stringToNode(baseHTML);
-        NODE_AREA_KEYPAD.append( aNode );
+        let aNode = UtilMisetaku.stringToNode(baseHTML);
+        nodes.AREA_KEYPAD.append( aNode );
     }
-    NODE_AREA_KEYPAD.addEventListener(
+    nodes.AREA_KEYPAD.addEventListener(
         'click',
         onClickNodePad,
         false
     );
-    clearCurrentArgument();
-    showWholeResult();
+    proxyCurrentArgument.clear();
+    proxyWholeResult.set();
 }
 
 window.addEventListener(
