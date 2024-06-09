@@ -150,6 +150,31 @@ body
     vertical-align: .1em;
 }
 
+.rotateRightTop
+{
+    top: 0;
+    right: 0;
+}
+.rotateLeftBottom
+{
+    left: 0;
+    bottom: 0;
+}
+#flagOfWholeResult
+{
+    position: absolute;
+    font-size: calc( 100svw / 16 );
+    display: block;
+    height: 1.2em;
+    margin: .26em .4em;
+    color: white;
+    font-weight: bold;
+    background: rgb(30, 30, 30);
+    padding: 0em .26em;
+    border-radius: .2em;
+    visibility: hidden; /* default */
+}
+
 #areaAccumulator
 {
     position: relative;
@@ -186,8 +211,6 @@ body
     width: 100%;
     height: auto;
 }
-
-
 
 #areaAccumulator
 {
@@ -492,6 +515,10 @@ code{white-space:pre;}q{quotes:"“" "”" "‘" "’";}.md2html-container{max-w
         >
             桁あふれ
         </div>
+        <div
+            id="flagOfWholeResult"
+            class="rotate180Deg rotateRightTop"
+        ></div>
         <button
             id="buttonFlip"
             type="button"
@@ -643,7 +670,11 @@ URL は <code>https://miladoll.github.io/misetaku/</code> です。 <a href="htt
 </ul>
 <h2 id="改版履歴">改版履歴</h2>
 <ul>
-<li>0.8.2
+<li>0.8.4
+<ul>
+<li>「計」「釣銭」表示追加</li>
+</ul></li>
+<li>0.8.3
 <ul>
 <li>フリップボタン（計算結果の表示方向を180度変える）を追加</li>
 </ul></li>
@@ -885,7 +916,7 @@ URL は <code>https://miladoll.github.io/misetaku/</code> です。 <a href="htt
 </div>
 
 <script>
-const VERSION = '0.8.3';
+const VERSION = '0.8.4';
 
 const KEYS = [
     '7', '8', '9',
@@ -945,6 +976,7 @@ const nodes = new class {
     CURRENT_ARGUMENT = $$('nodeCurrentArgument');
     OPERATOR = $$('nodeOperator');
     OVERFLOW_FLAG_WHOLE_RESULT = $$('overflowFlagWholeResult');
+    FLAG_OF_WHOLE_RESULT = $$('flagOfWholeResult');
 }();
 
 const proxyOverflowFlagWholeResult = new class {
@@ -965,6 +997,45 @@ const proxyOverflowFlagWholeResult = new class {
         if ( this.isOverflowed() ) {
             this.setStyle('block');
         }
+    }
+}();
+
+const proxyFlagOfWholeResult = new class {
+    #status;
+    #node;
+    #waitingChange = false;
+    constructor( nd ) {
+        this.#node = nd;
+        this.clear();
+    }
+    set( stat ) {
+        this.#status = stat;
+        nodes.FLAG_OF_WHOLE_RESULT.innerHTML = stat;
+        nodes.FLAG_OF_WHOLE_RESULT.style.visibility = 'hidden';
+        if ( stat !== '' ) {
+            nodes.FLAG_OF_WHOLE_RESULT.style.visibility = 'visible';
+        }
+    }
+    clear() {
+        this.set('');
+    }
+    setThumb() {
+        this.set('計');
+    }
+    setChange() {
+        this.set('釣銭');
+    }
+    setWaitingChange() {
+        this.#waitingChange = true;
+    }
+    clearWaitingChange() {
+        this.#waitingChange = false;
+    }
+    isWaitingChange() {
+        if ( this.#waitingChange === true ) {
+            return true;
+        }
+        return false;
     }
 }();
 
@@ -1119,7 +1190,11 @@ function onClickNodePad(e) {
     if ( val === null ) {
         return;
     }
-    if( ! val.match(/^[0-9]$/) ) {
+    proxyFlagOfWholeResult.clear();
+    if ( ! val.match(/^[0-9]=$/) ) {
+        proxyFlagOfWholeResult.clearWaitingChange();
+    }
+    if ( ! val.match(/^[0-9]$/) ) {
         let currentArgument = proxyCurrentArgument.get();
         let lastArgument = proxyLastArgument.get();
         let _doAccumulate = ( thisOp ) => {
@@ -1134,6 +1209,7 @@ function onClickNodePad(e) {
                         currentArgument = lastArgument - currentArgument;
                         break;
                     case 'X' :
+                        proxyFlagOfWholeResult.setWaitingChange();
                         currentArgument = currentArgument - lastArgument;
                         break;
                     default:
@@ -1157,6 +1233,11 @@ function onClickNodePad(e) {
             case '=' :
                 _doAccumulate( '=' );
                 clearCurrentInputStatusAll();
+                if ( proxyFlagOfWholeResult.isWaitingChange() ) {
+                    proxyFlagOfWholeResult.setChange();
+                } else {
+                    proxyFlagOfWholeResult.setThumb();
+                }
                 break;
             case '+' :
             case '-' :
@@ -1189,12 +1270,26 @@ function pageStaging() {
     nodeButtonFlip.addEventListener(
         'click',
         () => {
-            let currentStyle = nodes.AREA_WHOLE_RESULT.className;
-            nodes.AREA_WHOLE_RESULT.className =
-                ( currentStyle == 'rotate180Deg' )
-                ? 'rotate0Deg'
-                : 'rotate180Deg'
-            ;
+            let ary0Deg = Array.from( document.getElementsByClassName( 'rotate0Deg' ) );
+            let ary180Deg = Array.from( document.getElementsByClassName( 'rotate180Deg' ) );
+            ary0Deg.forEach( e => {
+                e.classList.remove('rotate0Deg');
+                e.classList.add('rotate180Deg');
+            });
+            ary180Deg.forEach( e => {
+                e.classList.remove('rotate180Deg');
+                e.classList.add('rotate0Deg');
+            });
+            let aryRT = Array.from( document.getElementsByClassName( 'rotateRightTop' ) );
+            let aryLB = Array.from( document.getElementsByClassName( 'rotateLeftBottom' ) );
+            aryRT.forEach( e => {
+                e.classList.remove('rotateRightTop');
+                e.classList.add('rotateLeftBottom');
+            });
+            aryLB.forEach( e => {
+                e.classList.remove('rotateLeftBottom');
+                e.classList.add('rotateRightTop');
+            });
         },
         false
     );
